@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/artem/projects/work1/build",
+  "command": "/usr/bin/c++ -g -o CMakeFiles/work1.dir/main.cpp.o -c /home/artem/projects/work1/main.cpp",
+  "file": "/home/artem/projects/work1/main.cpp",
+  "output": "CMakeFiles/work1.dir/main.cpp.o"
+}
+]

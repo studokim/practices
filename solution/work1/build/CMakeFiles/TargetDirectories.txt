@@ -1,0 +1,7 @@
+/home/artem/projects/work1/build/CMakeFiles/work1.dir
+/home/artem/projects/work1/build/CMakeFiles/edit_cache.dir
+/home/artem/projects/work1/build/CMakeFiles/rebuild_cache.dir
+/home/artem/projects/work1/build/CMakeFiles/list_install_components.dir
+/home/artem/projects/work1/build/CMakeFiles/install.dir
+/home/artem/projects/work1/build/CMakeFiles/install/local.dir
+/home/artem/projects/work1/build/CMakeFiles/install/strip.dir
