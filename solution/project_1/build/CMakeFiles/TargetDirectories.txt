@@ -1,0 +1,7 @@
+/home/egor/Documents/project_1/build/CMakeFiles/install/strip.dir
+/home/egor/Documents/project_1/build/CMakeFiles/install/local.dir
+/home/egor/Documents/project_1/build/CMakeFiles/install.dir
+/home/egor/Documents/project_1/build/CMakeFiles/list_install_components.dir
+/home/egor/Documents/project_1/build/CMakeFiles/rebuild_cache.dir
+/home/egor/Documents/project_1/build/CMakeFiles/edit_cache.dir
+/home/egor/Documents/project_1/build/CMakeFiles/project_1.dir
