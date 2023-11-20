@@ -104,5 +104,4 @@ int main()
 {
     TrafficLight trafficLight;
     trafficLight.view();
-    return 0;
 }
