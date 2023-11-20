@@ -5,30 +5,32 @@
 
 #include "inih-master/cpp/INIReader.h"
 
+enum class TrafficLightColor
+{
+    RED,
+    YELLOW,
+    GREEN
+};
+
 class TrafficLight
 {
     long int redt;
     long int yellowt;
     long int greent;
 
-    void displayColor(const std::string &color)
+    void displayColor(const TrafficLightColor &color)
     {
-        if (color == "red")
+        switch (color)
         {
+        case TrafficLightColor::RED:
             std::cout << "\x1B[41m R \x1B[0m" << std::endl;
-        }
-        else if (color == "yellow")
-        {
+            break;
+        case TrafficLightColor::YELLOW:
             std::cout << "\x1B[103m Y \x1B[0m" << std::endl;
-        }
-        else if (color == "green")
-        {
+            break;
+        case TrafficLightColor::GREEN:
             std::cout << "\x1B[42m G \x1B[0m" << std::flush;
-        }
-        else
-        {
-            std::cout << "Ошибка отображения цвета" << std::endl;
-            exit(1);
+            break;
         }
     }
 
@@ -36,16 +38,32 @@ public:
     TrafficLight()
     {
         INIReader reader("../timings.ini");
-        if (reader.ParseError() < 0)
+        if(reader.ParseError() == -2)
         {
-            std::cout << "Ошибка прогрузки ini-файла" << std::endl;
-            exit(1);
+            std::cout << "Memory error\n";
+            exit(-2);
         }
-        else
+        else if(reader.ParseError() == -1)
         {
-            redt = reader.GetInteger("timings", "red", 5);
-            yellowt = reader.GetInteger("timings", "yellow", 3);
-            greent = reader.GetInteger("timings", "green", 5);
+            std::cout << "Can't load 'settings.ini'\n";
+        }
+        else if(reader.ParseError() > 0)
+        {
+            std::cout << "'settings.ini' has a syntax error\nIn line: " << reader.ParseError() << std::endl;
+        }
+
+        redt = reader.GetInteger("timings", "red", -1);
+        yellowt = reader.GetInteger("timings", "yellow", -1);
+        greent = reader.GetInteger("timings", "green", -1);
+
+        if(redt < 0 || yellowt < 0 || greent < 0)
+        {
+            std::cout << "Invalid timing value\nStandard values will be applied (3 seconds)\n";
+            system("sleep 4s");
+
+            redt = 3;
+            yellowt = 3;
+            greent = 3;
         }
     }
 
@@ -54,27 +72,29 @@ public:
         while (true)
         {
             system("clear");
-            displayColor("red");
+            displayColor(TrafficLightColor::RED);
             std::this_thread::sleep_for(std::chrono::seconds(redt));
-            displayColor("yellow");
+            displayColor(TrafficLightColor::YELLOW);
             std::this_thread::sleep_for(std::chrono::seconds(yellowt));
             system("clear");
             std::cout << std::endl;
             std::cout << std::endl;
-            displayColor("green");
+            displayColor(TrafficLightColor::GREEN);
             std::this_thread::sleep_for(std::chrono::seconds(greent));
+
             for (int i = 0; i < 4; i++)
             {
                 system("clear");
                 std::cout << std::endl;
                 std::cout << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                displayColor("green");
+                displayColor(TrafficLightColor::GREEN);
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
             }
+
             system("clear");
             std::cout << std::endl;
-            displayColor("yellow");
+            displayColor(TrafficLightColor::YELLOW);
             std::this_thread::sleep_for(std::chrono::seconds(yellowt));
         }
     }
