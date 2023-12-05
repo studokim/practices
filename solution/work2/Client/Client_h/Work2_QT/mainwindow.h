@@ -13,9 +13,6 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    bool validatePassport(const QString& qData);
-    bool validatePhoneNumber(const QString& qData);
-    bool validateCreditCardNumber(const QString& qData);
     ~MainWindow();
 
 private slots:
@@ -23,6 +20,9 @@ private slots:
     void checkInputs();
 
 private:
+    bool validatePassport(const QString& qData);
+    bool validatePhoneNumber(const QString& qData);
+    bool validateCreditCardNumber(const QString& qData);
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
