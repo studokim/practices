@@ -1,12 +1,5 @@
 #include "ValiDator.h"
 
-// Функция очистки от лишних символов
-std::string cleanData(const std::string &data)
-{
-    std::string cleanedData = data;
-    cleanedData.erase(std::remove_if(cleanedData.begin(), cleanedData.end(), ::isspace), cleanedData.end());
-    return cleanedData;
-}
 // Метод валидации для Российского паспорта.
 // Проверяет валидность данных.
 // Возвращает:
@@ -16,7 +9,7 @@ std::string cleanData(const std::string &data)
 int RussianPassportValidator::validate(const std::string &data) const
 {
     // Очищаем данные
-    std::string cleanedData = cleanData(data);
+    std::string cleanedData = Validator::Validator::cleanData(data);
 
     // Проверяем размер очищенных данных
     if (cleanedData.size() != 10)
@@ -49,7 +42,7 @@ int PhoneNumberValidator::validate(const std::string &data) const
     int digitCount = 0;
 
     // Очищаем данные
-    std::string cleanedData = cleanData(data);
+    std::string cleanedData = Validator::cleanData(data);
 
     // Проверяем наличие первого символа "+"
     if (cleanedData[0] != '+')
@@ -83,7 +76,8 @@ int PhoneNumberValidator::validate(const std::string &data) const
 }
 
 // Метод валидации для номера кредитной карты.
-// Применяет алгоритм Луна и проверку префиксов для определения валидности номера кредитной карты.
+// Проверяет валидность данных.
+// Применяет алгоритм Луна для проверки валидности номера кредитной карты.
 // Возвращает:
 // -1, если номер кредитной карты не проходит алгоритм Луна,
 // -2, если встречены нецифровые символы,
@@ -91,7 +85,7 @@ int PhoneNumberValidator::validate(const std::string &data) const
 int CreditCardNumberValidator::validate(const std::string &data) const
 {
     // Очищаем данные
-    std::string cleanedData = cleanData(data);
+    std::string cleanedData = Validator::cleanData(data);
 
     // Проверяем, что все символы - цифры
     for (char digit : cleanedData)
@@ -104,7 +98,7 @@ int CreditCardNumberValidator::validate(const std::string &data) const
 
     // Проверяем префиксы
     bool hasValidPrefix = false;
-    for (const std::string &prefix : {"1800", "2", "3", "4", "51", "52", "53", "54", "55", "6011"})
+    for (const std::string &prefix : validPrefixes)
     {
         if (cleanedData.find(prefix) == 0)
         {
