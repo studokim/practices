@@ -1,4 +1,4 @@
-#include "../header_only/ValiDator.h"
+#include "../src/ValiDator.h"
 #include <cassert>
 
 int main()
