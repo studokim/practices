@@ -19,7 +19,7 @@ public:
         
         if (proxySocket == -1) 
         {
-            perror("Error creating proxy socket");
+            std::cerr << "Error creating proxy socket" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -31,15 +31,16 @@ public:
         
         if (inet_pton(AF_INET, proxyIP, &proxyAddr.sin_addr) <= 0) 
         {
-            perror("Invalid proxy address");
+            std::cerr << "Invalid proxy address" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         // Установка соединения с сервером
         serverSocket = socket(AF_INET, SOCK_STREAM, 0);
         
-        if (serverSocket == -1) {
-            perror("Error creating server socket");
+        if (serverSocket == -1) 
+	{
+            std::cerr << "Error creating server socket" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -50,26 +51,26 @@ public:
         
         if (inet_pton(AF_INET, serverIP, &serverAddr.sin_addr) <= 0) 
         {
-            perror("Invalid server address");
+            std::cerr << "Invalid server address" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         if (connect(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) 
         {
-            perror("Error connecting to server");
+            std::cerr << "Error connecting to server" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         // Установка прослушивания на порту прокси
         if (bind(proxySocket, (struct sockaddr*)&proxyAddr, sizeof(proxyAddr)) == -1) 
         {
-            perror("Error binding proxy socket");
+            std::cerr << "Error binding proxy socket" << std::endl;
             exit(EXIT_FAILURE);
         }
 
         if (listen(proxySocket, 1) == -1) 
         {
-            perror("Error listening on proxy socket");
+            std::cerr << "Error listening on proxy socket" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -87,7 +88,7 @@ public:
         
         if (clientSocket == -1) 
         {
-            perror("Error accepting client connection");
+            std::cerr << "Error accepting client connection" << std::endl;
             exit(EXIT_FAILURE);
         }
 
