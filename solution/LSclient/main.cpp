@@ -2,63 +2,85 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <regex>
+#include <poll.h>
 
-const int BufferSize = 1024;
-const int TimeoutSeconds = 5;
+const int TimeoutMilliSeconds = 5000;
 
 class Client
 {
 private:
     int clientSocket;
+    static const int BufferSize = 1024;
 
-    // Проверка статуса сервера
-    bool CheckServerStatus()
+    // Отправка команды на сервер
+    void SendCommand(const std::string &command)
     {
-        char statusBuffer[2];
-        ssize_t bytesRead = recv(clientSocket, statusBuffer, sizeof(statusBuffer) - 1, MSG_PEEK);
-
-        if (bytesRead == -1)
+        // Проверка успешной отправки команды
+        ssize_t sentBytes = send(clientSocket, command.c_str(), command.size(), 0);
+        if (sentBytes == -1)
         {
-            std::cerr << "Ошибка при проверке статуса сервера" << std::endl;
-            return false;
+            std::cerr << "Ошибка отправки на сервер" << std::endl;
+            close(clientSocket);
+            exit(EXIT_FAILURE);
         }
-        else if (bytesRead == 0)
+        else if (sentBytes != static_cast<ssize_t>(command.size()))
         {
-            return false; // Сервер отключен
+            std::cerr << "Не все данные были отправлены" << std::endl;
+            close(clientSocket);
+            exit(EXIT_FAILURE);
         }
+    }
 
-        return true; // Сервер работает
+    // Проверка валидности команды
+    bool IsValidCommand(const std::string &command)
+    {
+        std::regex lsCommandPattern("^ls(\\s*-?[ahl]+\\s*)*(\\s+/[a-zA-Z0-9_/]+)?$");
+        return std::regex_match(command, lsCommandPattern);
     }
 
     // Проверка задержки сервера
-    bool CheckServerDelay()
+    void WaitForResponse()
     {
-        fd_set readSet;
-        FD_ZERO(&readSet);
-        FD_SET(clientSocket, &readSet);
+        struct pollfd fd;
+        fd.fd = clientSocket;
+        fd.events = POLLIN | POLLHUP | POLLERR;
 
-        struct timeval timeout;
-        timeout.tv_sec = TimeoutSeconds;
-        timeout.tv_usec = 0;
-
-        int result = select(clientSocket + 1, &readSet, nullptr, nullptr, &timeout);
+        int result = poll(&fd, 1, TimeoutMilliSeconds);
 
         if (result == -1)
         {
-            std::cerr << "Ошибка при проверке задержки сервера" << std::endl;
+            std::cerr << "Ошибка при проверке задержки сервера: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
         else if (result == 0)
         {
             std::cerr << "Задержка со стороны сервера. Пожалуйста, подождите." << std::endl;
-            return true;
+        }
+    }
+
+    // Получение ответа от сервера
+    void ReceiveResponse(char *buffer, int bufferSize)
+    {
+        ssize_t bytesRead = recv(clientSocket, buffer, bufferSize - 1, 0);
+        if (bytesRead == -1)
+        {
+            std::cerr << "Ошибка получения ответа от сервера" << std::endl;
+            close(clientSocket);
+            exit(EXIT_FAILURE);
+        }
+        else if (bytesRead == 0)
+        {
+            // Обработка отключения сервера
+            std::cerr << "Сервер отключен" << std::endl;
+            std::cout << "Нажмите Enter для завершения программы." << std::endl;
+            std::cin.get();
+            exit(EXIT_FAILURE);
         }
 
-        return false;
+        buffer[bytesRead] = '\0';
     }
 
 public:
-
     Client(int clientPort, const std::string &serverIP, int serverPort)
     {
         // Создание сокета клиента
@@ -108,54 +130,6 @@ public:
         std::cout << "Подключен к серверу " << serverIP << ":" << serverPort << " с портом клиента " << clientPort << std::endl;
     }
 
-    // Проверка валидности команды
-    bool IsValidCommand(const std::string &command)
-    {
-        std::regex lsCommandPattern("^ls(\\s*-?[ahl]+\\s*)*(\\s+/[a-zA-Z0-9_/]+)?$");
-        return std::regex_match(command, lsCommandPattern);
-    }
-
-    // Отправка команды на сервер
-    void SendCommand(const std::string &command)
-    {
-        // Проверка успешной отправки команды
-        ssize_t sentBytes = send(clientSocket, command.c_str(), command.size(), 0);
-        if (sentBytes == -1)
-        {
-            std::cerr << "Ошибка отправки на сервер" << std::endl;
-            close(clientSocket);
-            exit(EXIT_FAILURE);
-        }
-        else if (sentBytes != static_cast<ssize_t>(command.size()))
-        {
-            std::cerr << "Не все данные были отправлены" << std::endl;
-            close(clientSocket);
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    // Получение ответа от сервера
-    void ReceiveResponse(char *buffer, int bufferSize)
-    {
-        ssize_t bytesRead = recv(clientSocket, buffer, bufferSize - 1, 0);
-        if (bytesRead == -1)
-        {
-            std::cerr << "Ошибка получения ответа от сервера" << std::endl;
-            close(clientSocket);
-            exit(EXIT_FAILURE);
-        }
-        else if (bytesRead == 0)
-        {
-            // Обработка отключения сервера
-            std::cerr << "Сервер отключен" << std::endl;
-            std::cout << "Нажмите Enter для завершения программы." << std::endl;
-            std::cin.get();
-            exit(EXIT_FAILURE);
-        }
-
-        buffer[bytesRead] = '\0';
-    }
-
     // Запуск клиента
     void Start()
     {
@@ -177,16 +151,7 @@ public:
             SendCommand(command);
 
             // Проверка задержки сервера
-            CheckServerDelay();
-
-            // Проверка статуса сервера
-            if (!CheckServerStatus())
-            {
-                std::cerr << "Сервер отключен" << std::endl;
-                std::cout << "Нажмите Enter для завершения программы." << std::endl;
-                std::cin.get();
-                exit(EXIT_FAILURE);
-            }
+            WaitForResponse();
 
             // Получение и вывод ответа от сервера
             ReceiveResponse(buffer, sizeof(buffer));
@@ -201,7 +166,6 @@ public:
         close(clientSocket);
     }
 };
-
 
 int main(int argc, char *argv[])
 {
